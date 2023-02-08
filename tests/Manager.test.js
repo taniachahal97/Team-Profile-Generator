@@ -1,5 +1,5 @@
 const { iterInternalSymbol } = require("jsdom/lib/jsdom/living/generated/utils");
-const Manager = require("../Manager");
+const Manager = require("../lib/Manager");
 
 
 describe("Manager", () => {
