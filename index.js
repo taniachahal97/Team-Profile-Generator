@@ -5,14 +5,17 @@ const inquirer = require('inquirer');
 
 const jsdom = require("jsdom");
 
-const employee = require('./Employee'); //maybe not required
-const Manager = require('./Manager');
-const Engineer = require('./Engineer');
-const Intern = require('./Intern')
+
+const employee = require('./lib/Employee'); //maybe not required
+const Manager = require('./lib/Manager');
+const Engineer = require('./lib/Engineer');
+const Intern = require('./lib/Intern');
 
 var engineers = [];
 var interns = [];
 var managers = [];
+
+
 
 // TODO: Create a function to initialize app
 function init() {
@@ -70,6 +73,7 @@ function init() {
         else if(result.memberType === 'I do not want to add any more team members'){
 
             console.log('Building your team profile ...')
+            generateHtml();
 
         }
     
@@ -94,17 +98,17 @@ function engineerQuestions(){
             name: 'engineerId'
     
         },
-    
+
         {
             type: 'input',
-            message: 'What is your engineer email?',
-            name: 'engineerEmail'
+            message: 'What is your engineer git username?',
+            name: 'engineerGit'
         },
 
         {
             type: 'input',
-            message: 'What is your engineer GitHub username?',
-            name: 'engineerGithub'
+            message: 'What is your engineer email?',
+            name: 'engineerEmail'
         },
 
         {
@@ -119,7 +123,7 @@ function engineerQuestions(){
     .then(function(result){
         //console.log('Generating README.md.....');
         //console.log(`${result.engineerName} , ${result.engineerId} , ${result.engineerEmail} , ${result.memberType}`)
-        const newEngineer = new Engineer(result.engineerName, result.engineerId, result.engineerEmail, result.engineerGitHub);
+        const newEngineer = new Engineer(result.engineerName, result.engineerId, result.engineerEmail, result.engineerGit);
         
         engineers.push(newEngineer);
 
@@ -136,7 +140,6 @@ function engineerQuestions(){
 
             console.log('Building your team profile ...')
             generateHtml();
-            //printEngineers();
             
             //var htmlContent =
 
@@ -211,14 +214,6 @@ function internQuestions(){
     });
 }
 
-function printEngineers(){
-    for(var i=0; i < engineers.length; i++){
-        console.log(engineers[i].name);
-        console.log(engineers[i].id);
-        console.log(engineers[i].email);
-        console.log(engineers[i].github);
-    }
-}
 
 function generateHtml(){
 
@@ -231,34 +226,18 @@ function generateHtml(){
               <title>Results | Library of Congress Search</title>
               <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400&family=Merriweather:wght@700&display=swap"
                 rel="stylesheet" />
+                <link rel="stylesheet" href="./style.css" />
             </head>
             
             <body>
             
               <div class="flex-row align-start align-stretch-md align-content-start align-content-stretch-md min-100-vh bg-primary">
                 <div class="col-12 col-md-3 bg-light p-3">
-                  <h1 class="text-primary">Library of Congress Search Engine</h1>
-                  <form id="search-form" class="mb-2">
-                    <input id="search-input" class="form-input w-100" type="text" placeholder="Search!">
-                    <select id="format-input" class="form-input w-100">
-                      <option value="" disabled selected>Select a format...</option>
-                      <option value="maps">Maps</option>
-                      <option value="audio">Audio</option>
-                      <option value="photos">Photos</option>
-                      <option value="manuscripts">Manuscripts</option>
-                      <option value="newspapers">Newspapers</option>
-                      <option value="film-and-videos">Film and Videos</option>
-                      <option value="notated-music">Notated Music</option>
-                      <option value="websites">Websites</option>
-                    </select>
-                    <button class="btn btn-info btn-block">Search</button>
-                  </form>
-            
-                  <a href="./index.html" class="btn btn-block btn-danger">&larr; Go back.</a>
+                  <h1 class="text-primary">My Team</h1>
                 </div>
             
                 <div class="col-12 col-md-9 p-3 text-light">
-                  <h2>Showing results for <span id="result-text"></span></h2>
+                  <h2> Team Profile <span id="result-text"></span></h2>
                   <div id="result-content"></div>
                 </div>
               </div>
@@ -282,23 +261,46 @@ function generateHtml(){
                 var managerNum = managers[i].officeNumber;
 
                 var resultCard = document.createElement('div'); 
+                resultCard.classList.add('card','column');
         
                 //body container for forecast content 
                 var resultBody = document.createElement("div");
+                resultBody.classList.add('card-body');
         
                 resultCard.append(resultBody);
         
                 var titleEl = document.createElement('h3'); // creates the elemnets fior the body
                 titleEl.textContent = "Manager";
+
+                // email link for manager
+
+                const text = document.createTextNode('Email: ');
+
+                const emailLink = document.createElement("a");
+                emailLink.href = "mailto:" + managerEmail;
+                emailLink.textContent = managerEmail;
+
+                // image for manager
+
+                const imageData = fs.readFileSync("./images/manager.png");
+                const base64Image = imageData.toString("base64");
+
+                // Create an <img> tag
+                var img = document.createElement("img");
+                img.src = `data:image/jpeg;base64,${base64Image}`;
+                img.alt = "Example Image";
+                img.classList.add('icon');
         
                 var bodyContentEl = document.createElement('p')
         
-                bodyContentEl.innerHTML = '<strong>Name:</strong>' + managerName + '<br/>';
-                bodyContentEl.innerHTML += '<strong>Id:</strong>' + managerId + '</br>';
-                bodyContentEl.innerHTML += '<strong>Email:</strong>' + managerEmail + '</br>';
-                bodyContentEl.innerHTML += '<strong>Office Number:</strong>' + managerNum + '</br>';
+                bodyContentEl.innerHTML = '<strong>Name:</strong>' + ' ' + managerName + '<br/>';
+                bodyContentEl.innerHTML += '<strong>Id:</strong>' + ' ' + managerId + '</br>';
+                //bodyContentEl.innerHTML += '<strong>Email:</strong>' + ' ' + emailLink + '</br>';
+                bodyContentEl.innerHTML += '<strong>Office Number:</strong>' + ' ' + managerNum + '</br>';
         
-                resultBody.append(titleEl, bodyContentEl);
+                resultBody.append(titleEl, img, bodyContentEl);
+                resultBody.append(text);
+                resultBody.append(emailLink);
         
                 teamContent.append(resultCard);
 
@@ -312,23 +314,65 @@ function generateHtml(){
                 var github = engineers[i].github;
         
                 var resultCard = document.createElement('div'); 
+                resultCard.classList.add('card','column');
         
                 //body container for forecast content 
                 var resultBody = document.createElement("div");
+                resultBody.classList.add('card-body');
         
                 resultCard.append(resultBody);
         
                 var titleEl = document.createElement('h3'); // creates the elemnets fior the body
                 titleEl.textContent = "Engineer";
+
+                // email tag
+                // Create an <a> tag
+                const text = document.createTextNode('Email: ');
+                const emailLink = document.createElement("a");
+                emailLink.href = "mailto:" + email;
+                emailLink.textContent = email;
+
+                // github link for engineers
+
+                //Create a text node
+                const textNode = document.createTextNode("GitHub: ");
+
+                // Create an <a> tag
+                var githubLink = document.createElement("a");
+                githubLink.href = "https://github.com/" + github;
+                githubLink.textContent = github;
+
+                // image for engineers
+
+                const imageData = fs.readFileSync("./images/coffee-cup.png");
+                const base64Image = imageData.toString("base64");
+
+                // Create an <img> tag
+                var img = document.createElement("img");
+                img.src = `data:image/jpeg;base64,${base64Image}`;
+                img.alt = "Example Image";
+                img.classList.add('icon');
+
+                // creating break element
+
+                const br = document.createElement('br');
+
         
                 var bodyContentEl = document.createElement('p')
         
-                bodyContentEl.innerHTML = '<strong>Name:</strong>' + name + '<br/>';
-                bodyContentEl.innerHTML += '<strong>Id:</strong>' + id + '</br>';
-                bodyContentEl.innerHTML += '<strong>Email:</strong>' + email + '</br>';
-                bodyContentEl.innerHTML += '<strong>GitHub:</strong>' + github + '</br>';
+                bodyContentEl.innerHTML = '<strong>Name:</strong>' + ' ' + name + '<br/>';
+                bodyContentEl.innerHTML += '<strong>Id:</strong>' + ' ' + id + '</br>';
+                //bodyContentEl.innerHTML += '<strong>Email:</strong>' + ' ' + emailLink + '</br>';
+                //bodyContentEl.innerHTML += '<strong>GitHub:</strong>' + ' ' + githubLink + '</br>';
         
-                resultBody.append(titleEl, bodyContentEl);
+                resultBody.append(titleEl,img, bodyContentEl);
+                resultBody.append(textNode);
+                resultBody.append(githubLink);
+                resultBody.append(br);
+                resultBody.append(text);
+                resultBody.append(emailLink);
+
+
         
                 teamContent.append(resultCard);
 
@@ -344,23 +388,45 @@ function generateHtml(){
                 var internSchool = interns[i].school;
         
                 var resultCard = document.createElement('div'); 
+                resultCard.classList.add('card','column');
         
                 //body container for forecast content 
                 var resultBody = document.createElement("div");
+                resultBody.classList.add('card-body');
         
                 resultCard.append(resultBody);
         
                 var titleEl = document.createElement('h3'); // creates the elemnets fior the body
                 titleEl.textContent = "Intern";
+
+                // email link for interns
+                const text = document.createTextNode('Email: ');
+
+                const emailLink = document.createElement("a");
+                emailLink.href = "mailto:" + internEmail;
+                emailLink.textContent = internEmail;
+
+                // image for interns
+
+                const imageData = fs.readFileSync("./images/glasses.png");
+                const base64Image = imageData.toString("base64");
+
+                // Create an <img> tag
+                var img = document.createElement("img");
+                img.src = `data:image/jpeg;base64,${base64Image}`;
+                img.alt = "Example Image";
+                img.classList.add('icon');
         
                 var bodyContentEl = document.createElement('p')
         
-                bodyContentEl.innerHTML = '<strong>Name:</strong>' + internName + '<br/>';
-                bodyContentEl.innerHTML += '<strong>Id:</strong>' + internId + '</br>';
-                bodyContentEl.innerHTML += '<strong>Email:</strong>' + internEmail + '</br>';
-                bodyContentEl.innerHTML += '<strong>School:</strong>' + internSchool + '</br>';
+                bodyContentEl.innerHTML = '<strong>Name:</strong>' + ' ' + internName + '<br/>';
+                bodyContentEl.innerHTML += '<strong>Id:</strong>' + ' ' + internId + '</br>';
+                //bodyContentEl.innerHTML += '<strong>Email:</strong>' + ' ' + emailLink + '</br>';
+                bodyContentEl.innerHTML += '<strong>School:</strong>' + ' ' + internSchool + '</br>';
         
-                resultBody.append(titleEl, bodyContentEl);
+                resultBody.append(titleEl, img, bodyContentEl);
+                resultBody.append(text);
+                resultBody.append(emailLink);
         
                 teamContent.append(resultCard);
 
@@ -374,8 +440,11 @@ function generateHtml(){
 
             const modifiedHtml = dom.serialize();
 
+            const folder = 'dist';
+            const file = 'index.html'
+
             //fs.writeFile('index.html',htmlContent,(err)=> err ? console.error(err) : console.log('Html Success!'));
-            fs.writeFileSync("index.html", modifiedHtml);
+            fs.writeFileSync(`${folder}/${file}`, modifiedHtml);
 
 }
 
